@@ -4,7 +4,7 @@ use utils;
 
 struct Command {
     direction: Direction,
-    distance: usize,
+    units: usize,
 }
 
 impl FromStr for Command {
@@ -15,7 +15,7 @@ impl FromStr for Command {
 
         Ok(Command {
             direction: split[0].parse()?,
-            distance: split[1].parse()?,
+            units: split[1].parse()?,
         })
     }
 }
@@ -40,7 +40,8 @@ impl FromStr for Direction {
 }
 
 fn main() {
-    println!("{}", part_one())
+    println!("{}", part_one());
+    println!("{}", part_two());
 }
 
 fn part_one() -> usize {
@@ -50,11 +51,28 @@ fn part_one() -> usize {
             .fold(
                 (0usize, 0usize),
                 |(horizontal_position, depth), command| match command.direction {
-                    Direction::Forward => (horizontal_position + command.distance, depth),
-                    Direction::Down => (horizontal_position, depth + command.distance),
-                    Direction::Up => (horizontal_position, depth - command.distance),
+                    Direction::Forward => (horizontal_position + command.units, depth),
+                    Direction::Down => (horizontal_position, depth + command.units),
+                    Direction::Up => (horizontal_position, depth - command.units),
                 },
             );
+
+    horizontal_position * depth
+}
+
+fn part_two() -> usize {
+    let (horizontal_position, depth, _) = parse_input().iter().fold(
+        (0usize, 0usize, 0usize),
+        |(horizontal_position, depth, aim), command| match command.direction {
+            Direction::Forward => (
+                horizontal_position + command.units,
+                depth + (aim * command.units),
+                aim,
+            ),
+            Direction::Down => (horizontal_position, depth, aim + command.units),
+            Direction::Up => (horizontal_position, depth, aim - command.units),
+        },
+    );
 
     horizontal_position * depth
 }
@@ -72,5 +90,10 @@ mod day_02_tests {
     #[test]
     fn part_one_gives_correct_answer() {
         assert_eq!(part_one(), 1524750)
+    }
+
+    #[test]
+    fn part_two_gives_correct_answer() {
+        assert_eq!(part_two(), 1592426537)
     }
 }
