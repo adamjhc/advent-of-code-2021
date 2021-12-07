@@ -80,7 +80,8 @@ impl BoardValue {
 }
 
 fn main() {
-    println!("{}", part_one())
+    println!("{}", part_one());
+    println!("{}", part_two());
 }
 
 fn part_one() -> usize {
@@ -93,13 +94,35 @@ fn part_one() -> usize {
 
         for bingo_board in &bingo_boards {
             if bingo_board.is_winner() {
-                dbg!(&bingo_board);
                 return bingo_board.sum_unmarked_numbers() * number;
             }
         }
     }
 
     0
+}
+
+fn part_two() -> usize {
+    let (numbers, mut bingo_boards) = parse_input();
+
+    let mut last_winning_score = 0usize;
+    for number in numbers {
+        bingo_boards
+            .iter_mut()
+            .for_each(|bingo_board| bingo_board.mark_number(number));
+
+        let mut num_removed = 0;
+        for i in 0..bingo_boards.len() {
+            let index = i - num_removed;
+            if bingo_boards[index].is_winner() {
+                last_winning_score = bingo_boards[index].sum_unmarked_numbers() * number;
+                bingo_boards.swap_remove(index);
+                num_removed += 1;
+            }
+        }
+    }
+
+    last_winning_score
 }
 
 fn parse_input() -> (Vec<usize>, Vec<BingoBoard>) {
@@ -133,6 +156,11 @@ mod day_04_tests {
     #[test]
     fn part_one_gives_correct_answer() {
         assert_eq!(part_one(), 34506)
+    }
+
+    #[test]
+    fn part_two_gives_correct_answer() {
+        assert_eq!(part_two(), 7686)
     }
 
     #[test]
