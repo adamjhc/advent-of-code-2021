@@ -1,7 +1,8 @@
 use utils;
 
 fn main() {
-    println!("{}", part_one())
+    println!("{}", part_one());
+    println!("{}", part_two());
 }
 
 fn part_one() -> usize {
@@ -54,6 +55,62 @@ fn part_one() -> usize {
     }
 
     total_flashes
+}
+
+fn part_two() -> usize {
+    let mut energy_levels = parse_input();
+
+    let mut step = 1;
+    loop {
+        energy_levels
+            .iter_mut()
+            .for_each(|row| row.iter_mut().for_each(|(energy, _)| *energy += 1));
+
+        let mut step_flashes = 0;
+        loop {
+            let mut flashes = 0;
+
+            let max_row = energy_levels.len();
+            let max_col = energy_levels[0].len();
+            for row in 0..max_row {
+                for col in 0..max_col {
+                    let (energy, has_flashed) = energy_levels[row][col];
+
+                    if energy > 9 && !has_flashed {
+                        let adjacent_locations = get_adjacent_locations(row, col, max_row, max_col);
+
+                        adjacent_locations
+                            .iter()
+                            .for_each(|&(row, col)| energy_levels[row][col].0 += 1);
+
+                        energy_levels[row][col] = (energy, true);
+                        flashes += 1;
+                    }
+                }
+            }
+
+            step_flashes += flashes;
+
+            if flashes == 0 {
+                break;
+            }
+        }
+
+        if step_flashes == 100 {
+            return step;
+        }
+
+        energy_levels.iter_mut().for_each(|row| {
+            row.iter_mut().for_each(|(energy, has_flashed)| {
+                if *has_flashed {
+                    *energy = 0;
+                    *has_flashed = false;
+                }
+            })
+        });
+
+        step += 1;
+    }
 }
 
 fn parse_input() -> Vec<Vec<(u32, bool)>> {
@@ -110,5 +167,10 @@ mod day_11_tests {
     #[test]
     fn part_one_gives_correct_answer() {
         assert_eq!(part_one(), 1713)
+    }
+
+    #[test]
+    fn part_two_gives_correct_answer() {
+        assert_eq!(part_two(), 502)
     }
 }
