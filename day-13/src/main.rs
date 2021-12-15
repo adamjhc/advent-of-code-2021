@@ -21,7 +21,8 @@ impl FromStr for FoldDirection {
 }
 
 fn main() {
-    println!("{}", part_one())
+    println!("{}", part_one());
+    println!("{}", part_two());
 }
 
 fn part_one() -> usize {
@@ -56,6 +57,44 @@ fn part_one() -> usize {
         .len()
 }
 
+fn part_two() -> String {
+    let (mut dots, instructions) = parse_input();
+
+    instructions.iter().for_each(|&(fold_direction, value)| {
+        dots = dots.iter().fold(HashSet::new(), |mut set, &dot| {
+            set.insert(fold(dot, fold_direction, value));
+            set
+        });
+    });
+
+    let (max_x, max_y) = dots.iter().fold((0, 0), |(mut max_x, mut max_y), &(x, y)| {
+        if x > max_x {
+            max_x = x;
+        }
+        if y > max_y {
+            max_y = y;
+        }
+
+        (max_x, max_y)
+    });
+
+    let output = dots.iter().fold(
+        vec![vec!['.'; max_x + 1]; max_y + 1],
+        |mut output, &(x, y)| {
+            output[y][x] = '#';
+            output
+        },
+    );
+
+    output
+        .iter()
+        .fold(String::new(), |output, row| {
+            output + &row.iter().collect::<String>() + "\n"
+        })
+        .trim()
+        .to_string()
+}
+
 fn parse_input() -> (HashSet<(usize, usize)>, Vec<(FoldDirection, usize)>) {
     let input = utils::read_string("./input.txt");
     let sections: Vec<&str> = input.split("\n\n").collect();
@@ -80,6 +119,25 @@ fn parse_input() -> (HashSet<(usize, usize)>, Vec<(FoldDirection, usize)>) {
     (dots, instructions)
 }
 
+fn fold((x, y): (usize, usize), fold_direction: FoldDirection, value: usize) -> (usize, usize) {
+    match fold_direction {
+        FoldDirection::X => {
+            if x > value {
+                (x - 2 * (x - value), y)
+            } else {
+                (x, y)
+            }
+        }
+        FoldDirection::Y => {
+            if y > value {
+                (x, y - 2 * (y - value))
+            } else {
+                (x, y)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod day_13_tests {
     use super::*;
@@ -87,5 +145,18 @@ mod day_13_tests {
     #[test]
     fn part_one_gives_correct_input() {
         assert_eq!(part_one(), 765)
+    }
+
+    #[test]
+    fn part_two_gives_correct_answer() {
+        assert_eq!(
+            part_two(),
+            "###..####.#..#.####.#....###...##..#..#\n\
+             #..#....#.#.#.....#.#....#..#.#..#.#..#\n\
+             #..#...#..##.....#..#....#..#.#....####\n\
+             ###...#...#.#...#...#....###..#.##.#..#\n\
+             #.#..#....#.#..#....#....#....#..#.#..#\n\
+             #..#.####.#..#.####.####.#.....###.#..#"
+        )
     }
 }
